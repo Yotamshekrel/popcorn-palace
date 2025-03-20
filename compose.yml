@@ -14,3 +14,5 @@ services:
       - target: 5432
         published: 5432
         protocol: tcp
+    volumes:
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
