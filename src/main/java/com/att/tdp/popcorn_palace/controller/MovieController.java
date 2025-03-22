@@ -29,6 +29,7 @@ public class MovieController {
      */
     @GetMapping("/all")
     public ResponseEntity<List<Movie>> getAllMovies() {
+        System.out.println("[MovieController] INFO - Request to fetch all movies.");
         List<Movie> movies = movieRepository.findAll();
         
         System.out.println("[MovieController] INFO - Returning " + movies.size() + " movies.");

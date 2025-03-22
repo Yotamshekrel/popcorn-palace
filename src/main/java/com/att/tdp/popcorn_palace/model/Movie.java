@@ -48,7 +48,8 @@ public class Movie {
     @Max(value = 2025, message = "Release year must not exceed the current year (2025)")
     private Integer releaseYear;
 
-   
+    public Movie() {}
+    
     public Movie(String title, String genre, Integer duration, Double rating, Integer releaseYear) {
         this.title = title;
         this.genre = genre;
