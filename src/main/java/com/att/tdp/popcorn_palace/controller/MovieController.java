@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 
+/**
+ * Controller for handling all movie-related API endpoints.
+ */
 @RestController
 @RequestMapping("/movies")
 public class MovieController {
@@ -18,126 +21,144 @@ public class MovieController {
     private MovieRepository movieRepository;
 
     /**
-     * GET /movies/all
+     * Endpoint: GET /movies/all
      * 
-     * Fetch all movies.
-     * Returns:
-     *  200 OK + List of movies in JSON
+     * Retrieve a list of all movies.
+     * 
+     * @return 200 OK with the list of all movies in JSON
      */
     @GetMapping("/all")
     public ResponseEntity<List<Movie>> getAllMovies() {
         List<Movie> movies = movieRepository.findAll();
+        
+        System.out.println("[MovieController] INFO - Returning " + movies.size() + " movies.");
+        
         return ResponseEntity.ok(movies);
     }
 
     /**
-     * POST /movies
+     * Endpoint: POST /movies
      * 
-     * Add a new movie.
-     * Expected JSON Body:
-     *   {
-     *     "title": "...",
-     *     "genre": "...",
-     *     "duration": ...,
-     *     "rating": ...,
-     *     "releaseYear": ...
-     *   }
-     * Returns:
-     *  200 OK + the created movie JSON
-     *  409 Conflict if a movie with the same title exists
-     *  400 Bad Request if the request body fails validation
+     * Create a new movie entry.
+     * 
+     * Expects a JSON body with title, genre, duration, rating, releaseYear.
+     * 
+     * @param movie The movie details sent by the client.
+     * @return 200 OK + newly created movie JSON,
+     *         or 409 Conflict if a movie with the same title exists,
+     *         or 400 Bad Request if validation fails.
      */
     @PostMapping
-    public ResponseEntity<?> addMovie(@Valid @RequestBody Movie movie) {
-        // Check if a movie with the same title already exists
+    public ResponseEntity<String> addMovie(@Valid @RequestBody Movie movie) {
+        System.out.println("[MovieController] INFO - Request to add new movie: '" + movie.getTitle() + "'");
+        
+        // Check if a movie with the same title is already present
         if (movieRepository.existsByTitle(movie.getTitle())) {
+            System.out.println("[MovieController] WARN - Movie with title '" + movie.getTitle() + "' already exists.");
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
-                    .body("A movie with this title already exists.");
+                    .body("Another movie already has the title '" + movie.getTitle() + "'. Please pick a unique title.");
         }
 
         // Save the new movie
         Movie savedMovie = movieRepository.save(movie);
-        return ResponseEntity.ok(savedMovie);
+        
+        String successMsg = "Successfully created the movie: '" + savedMovie.getTitle() + "'.";
+        System.out.println("[MovieController] SUCCESS - " + successMsg);
+
+        return ResponseEntity.ok(successMsg);
     }
 
     /**
-     * POST /movies/update/{movieTitle}
+     * Endpoint: POST /movies/update/{movieTitle}
      * 
-     * Update an existing movie by its original title.
-     * Expected JSON Body:
-     *   {
-     *     "title": "...",
-     *     "genre": "...",
-     *     "duration": ...,
-     *     "rating": ...,
-     *     "releaseYear": ...
-     *   }
-     * PathVariable: {movieTitle} is the original title to look up the existing record.
+     * Update an existing movie by looking it up via its original title.
      * 
-     * Returns:
-     *  200 OK + the updated movie JSON
-     *  404 Not Found if no movie with the specified original title exists
-     *  409 Conflict if the new title is already taken by another movie
-     *  400 Bad Request if the request body fails validation
+     * @param movieTitle The original title used to find the existing record.
+     * @param updatedData The new movie details from the client.
+     * @return 200 OK + updated movie info, or 404 if not found,
+     *         or 409 Conflict if the new title is taken,
+     *         or 400 if the request body fails validation.
      */
     @PostMapping("/update/{movieTitle}")
-    public ResponseEntity<?> updateMovieByTitle(
+    public ResponseEntity<String> updateMovieByTitle(
             @PathVariable String movieTitle,
             @Valid @RequestBody Movie updatedData
     ) {
+        System.out.println("[MovieController] INFO - Request to update movie: '" + movieTitle + "'");
+
+        // Attempt to retrieve the existing movie by the old title
         return movieRepository.findByTitle(movieTitle).map(existingMovie -> {
-            // If user tries to rename the movie to a new title that's already taken
-            if (!movieTitle.equals(updatedData.getTitle()) &&
-                    movieRepository.existsByTitle(updatedData.getTitle())) {
+
+            // If the user wants to rename the movie, ensure the new title is not already in use
+            boolean wantsToRename = !movieTitle.equals(updatedData.getTitle());
+            boolean newTitleTaken = movieRepository.existsByTitle(updatedData.getTitle());
+            
+            if (wantsToRename && newTitleTaken) {
+                System.out.println("[MovieController] WARN - New title '" + updatedData.getTitle() + "' is already taken.");
                 return ResponseEntity
                         .status(HttpStatus.CONFLICT)
-                        .body("A movie with the new title already exists.");
+                        .body("Sorry, the title '" + updatedData.getTitle() + "' is already used by another movie.");
             }
 
-            // Update fields
+            // Update relevant fields
             existingMovie.setTitle(updatedData.getTitle());
             existingMovie.setGenre(updatedData.getGenre());
             existingMovie.setDuration(updatedData.getDuration());
             existingMovie.setRating(updatedData.getRating());
             existingMovie.setReleaseYear(updatedData.getReleaseYear());
 
-            // Save updated movie
             Movie saved = movieRepository.save(existingMovie);
-            return ResponseEntity.ok(saved);
-        }).orElse(ResponseEntity.notFound().build());
+
+            String successMsg = "Movie '" + movieTitle + "' was updated successfully. New title is '" 
+                                + saved.getTitle() + "'.";
+            System.out.println("[MovieController] SUCCESS - " + successMsg);
+
+            return ResponseEntity.ok(successMsg);
+
+        }).orElseGet(() -> {
+            System.out.println("[MovieController] ERROR - No movie found with title '" + movieTitle + "'");
+            return ResponseEntity.notFound().build();
+        });
     }
 
     /**
-     * DELETE /movies/{movieTitle}
+     * Endpoint: DELETE /movies/{movieTitle}
      * 
      * Delete a movie by its title.
-     * Returns:
-     *  200 OK + a success message
-     *  404 Not Found if no movie with the specified title exists
+     * 
+     * @param movieTitle The unique title of the movie to be removed.
+     * @return 200 OK on success, 404 if the movie doesn't exist,
+     *         500 if there's a server or DB error.
      */
     @DeleteMapping("/{movieTitle}")
-public ResponseEntity<?> deleteMovieByTitle(@PathVariable String movieTitle) {
+    public ResponseEntity<String> deleteMovieByTitle(@PathVariable String movieTitle) {
+        System.out.println("[MovieController] INFO - Attempting to delete movie: '" + movieTitle + "'");
 
+        // Check if there's a matching movie
+        boolean movieExists = movieRepository.existsByTitle(movieTitle);
+        if (!movieExists) {
+            System.out.println("[MovieController] WARN - Movie '" + movieTitle + "' does not exist for deletion.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No movie found with title '" + movieTitle + "'. Could not delete.");
+        }
 
+        // Try performing the delete
+        try {
+            movieRepository.deleteByTitle(movieTitle);
 
-    boolean exists = movieRepository.existsByTitle(movieTitle);
+            String successMsg = "Movie '" + movieTitle + "' was removed successfully.";
+            System.out.println("[MovieController] SUCCESS - " + successMsg);
+            return ResponseEntity.ok(successMsg);
 
-    if (!exists) {
-        System.out.println("DEBUG: returning 404 because we can't find a match in DB.");
-        return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            System.out.println("[MovieController] ERROR - Exception while deleting movie: " + e.getMessage());
+            e.printStackTrace();
+
+            // Return a user-friendly message
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Something went wrong while deleting '" + movieTitle + "'. Please try again or contact support.");
+        }
     }
-
-    try {
-        movieRepository.deleteByTitle(movieTitle);
-        return ResponseEntity.ok("Movie deleted successfully.");
-    } catch (Exception e) {
-        // 5) Print out the actual exception message
-        e.printStackTrace();
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body("Error deleting movie: " + e.getMessage());
-    }
-}
-    
 }
