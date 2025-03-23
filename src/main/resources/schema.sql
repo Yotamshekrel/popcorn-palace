@@ -30,11 +30,13 @@ CREATE TABLE IF NOT EXISTS showtimes (
 
 -- Create Bookings Table
 CREATE TABLE IF NOT EXISTS bookings (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY,
     showtime_id INT NOT NULL,
-    seat_number INT NOT NULL CHECK (seat_number > 0), -- Ensure positive seat number
-    customer_name VARCHAR(100) NOT NULL,
+    user_id UUID NOT NULL,
+    seat_number INT NOT NULL CHECK (seat_number > 0),
     booking_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     CONSTRAINT fk_showtime FOREIGN KEY (showtime_id) REFERENCES showtimes(id) ON DELETE CASCADE,
-    CONSTRAINT unique_seat_booking UNIQUE (showtime_id, seat_number) -- Prevent double booking
+    CONSTRAINT unique_seat_booking UNIQUE (showtime_id, seat_number)
 );
+

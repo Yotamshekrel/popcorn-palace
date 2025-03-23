@@ -18,10 +18,10 @@ INSERT INTO showtimes (movie_id, theater, start_time, end_time, price) VALUES
     (3, 'Grand Theater', '2025-03-24 20:00:00', '2025-03-24 23:00:00', 18.00),
     (4, 'Retro Cinema', '2025-03-25 15:30:00', '2025-03-25 18:00:00', 10.00);
 
--- -- Insert sample bookings into the bookings table
--- INSERT INTO bookings (showtime_id, seat_number, customer_name, booking_time) VALUES
---     (1, 5, 'John Doe', '2025-03-20 10:00:00'),
---     (1, 12, 'Jane Smith', '2025-03-20 10:05:00'),
---     (2, 8, 'Mike Johnson', '2025-03-21 15:00:00'),
---     (3, 22, 'Emily Davis', '2025-03-22 18:00:00'),
---     (4, 7, 'Chris Brown', '2025-03-23 16:30:00');
+-- Insert sample bookings into the bookings table
+INSERT INTO bookings (id, showtime_id, user_id, seat_number, booking_time) VALUES
+    ('11111111-aaaa-4bbb-cccc-111111111111', 1, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 5, '2025-03-20 10:00:00'),
+    ('22222222-bbbb-4ccc-dddd-222222222222', 1, 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 12, '2025-03-20 10:05:00'),
+    ('33333333-cccc-4ddd-eeee-333333333333', 2, 'cccccccc-cccc-cccc-cccc-cccccccccccc', 8, '2025-03-21 15:00:00'),
+    ('44444444-dddd-4eee-ffff-444444444444', 3, 'dddddddd-dddd-dddd-dddd-dddddddddddd', 22, '2025-03-22 18:00:00'),
+    ('55555555-eeee-4fff-aaaa-555555555555', 4, 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 7, '2025-03-23 16:30:00');
