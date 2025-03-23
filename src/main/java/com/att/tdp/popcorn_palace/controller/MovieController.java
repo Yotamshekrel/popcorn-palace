@@ -120,9 +120,11 @@ public class MovieController {
             return ResponseEntity.ok(successMsg);
 
         }).orElseGet(() -> {
-            System.out.println("[MovieController] ERROR - No movie found with title '" + movieTitle + "'");
-            return ResponseEntity.notFound().build();
+            String msg = "Movie with title '" + movieTitle + "' was not found. Update failed.";
+            System.out.println("[MovieController] WARN - " + msg);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         });
+        
     }
 
     /**
