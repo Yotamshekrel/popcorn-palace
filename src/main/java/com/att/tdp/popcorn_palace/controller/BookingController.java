@@ -14,7 +14,7 @@ import java.util.UUID;
 
 /**
  * Handles booking tickets according to the README:
- *  POST /bookings  -> Book a ticket
+ * POST /bookings -> Book a ticket
  */
 @RestController
 @RequestMapping("/bookings")
@@ -24,22 +24,22 @@ public class BookingController {
     private BookingRepository bookingRepository;
 
     @Autowired
-    private ShowtimeRepository showtimeRepository; 
+    private ShowtimeRepository showtimeRepository;
 
     /**
      * POST /bookings
      * Request:
      * {
-     *   "showtimeId": 1,
-     *   "seatNumber": 15,
-     *   "userId": "84438967-f68f-4fa0-b620-0f08217e76af"
+     * "showtimeId": 1,
+     * "seatNumber": 15,
+     * "userId": "84438967-f68f-4fa0-b620-0f08217e76af"
      * }
      * Response: 200 OK { "bookingId":"uuid-here" }
      */
     @PostMapping
     public ResponseEntity<?> bookTicket(@Valid @RequestBody BookingRequest request) {
         System.out.println("[BookingController] INFO - Booking ticket for showtime=" + request.getShowtimeId()
-            + ", seat=" + request.getSeatNumber() + ", user=" + request.getUserId());
+                + ", seat=" + request.getSeatNumber() + ", user=" + request.getUserId());
 
         // 1) Check if showtime exists
         if (!showtimeRepository.existsById(request.getShowtimeId())) {
@@ -48,11 +48,11 @@ public class BookingController {
 
         // 2) Check if seat is taken
         boolean seatTaken = bookingRepository.existsByShowtimeIdAndSeatNumber(
-                request.getShowtimeId(), request.getSeatNumber()
-        );
+                request.getShowtimeId(), request.getSeatNumber());
         if (seatTaken) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Seat " + request.getSeatNumber() + " is already booked for showtime " + request.getShowtimeId());
+                    .body("Seat " + request.getSeatNumber() + " is already booked for showtime "
+                            + request.getShowtimeId());
         }
 
         // 3) Convert userId from String -> UUID
@@ -68,8 +68,8 @@ public class BookingController {
         booking = bookingRepository.save(booking);
 
         // 5) Return 200 OK + bookingId
-        return ResponseEntity.ok(
-                java.util.Map.of("bookingId", booking.getId().toString())
-        );
+        String msg = "Booking confirmed! Your booking ID is: " + booking.getId();
+        return ResponseEntity.ok(msg);
+
     }
 }
