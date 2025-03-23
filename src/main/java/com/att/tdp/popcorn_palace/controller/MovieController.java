@@ -31,9 +31,9 @@ public class MovieController {
     public ResponseEntity<List<Movie>> getAllMovies() {
         System.out.println("[MovieController] INFO - Request to fetch all movies.");
         List<Movie> movies = movieRepository.findAll();
-        
+
         System.out.println("[MovieController] INFO - Returning " + movies.size() + " movies.");
-        
+
         return ResponseEntity.ok(movies);
     }
 
@@ -52,18 +52,19 @@ public class MovieController {
     @PostMapping
     public ResponseEntity<String> addMovie(@Valid @RequestBody Movie movie) {
         System.out.println("[MovieController] INFO - Request to add new movie: '" + movie.getTitle() + "'");
-        
+
         // Check if a movie with the same title is already present
         if (movieRepository.existsByTitle(movie.getTitle())) {
             System.out.println("[MovieController] WARN - Movie with title '" + movie.getTitle() + "' already exists.");
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
-                    .body("Another movie already has the title '" + movie.getTitle() + "'. Please pick a unique title.");
+                    .body("Another movie already has the title '" + movie.getTitle()
+                            + "'. Please pick a unique title.");
         }
 
         // Save the new movie
         Movie savedMovie = movieRepository.save(movie);
-        
+
         String successMsg = "Successfully created the movie: '" + savedMovie.getTitle() + "'.";
         System.out.println("[MovieController] SUCCESS - " + successMsg);
 
@@ -75,7 +76,7 @@ public class MovieController {
      * 
      * Update an existing movie by looking it up via its original title.
      * 
-     * @param movieTitle The original title used to find the existing record.
+     * @param movieTitle  The original title used to find the existing record.
      * @param updatedData The new movie details from the client.
      * @return 200 OK + updated movie info, or 404 if not found,
      *         or 409 Conflict if the new title is taken,
@@ -84,19 +85,20 @@ public class MovieController {
     @PostMapping("/update/{movieTitle}")
     public ResponseEntity<String> updateMovieByTitle(
             @PathVariable String movieTitle,
-            @Valid @RequestBody Movie updatedData
-    ) {
+            @Valid @RequestBody Movie updatedData) {
         System.out.println("[MovieController] INFO - Request to update movie: '" + movieTitle + "'");
 
         // Attempt to retrieve the existing movie by the old title
         return movieRepository.findByTitle(movieTitle).map(existingMovie -> {
 
-            // If the user wants to rename the movie, ensure the new title is not already in use
+            // If the user wants to rename the movie, ensure the new title is not already in
+            // use
             boolean wantsToRename = !movieTitle.equals(updatedData.getTitle());
             boolean newTitleTaken = movieRepository.existsByTitle(updatedData.getTitle());
-            
+
             if (wantsToRename && newTitleTaken) {
-                System.out.println("[MovieController] WARN - New title '" + updatedData.getTitle() + "' is already taken.");
+                System.out.println(
+                        "[MovieController] WARN - New title '" + updatedData.getTitle() + "' is already taken.");
                 return ResponseEntity
                         .status(HttpStatus.CONFLICT)
                         .body("Sorry, the title '" + updatedData.getTitle() + "' is already used by another movie.");
@@ -111,8 +113,8 @@ public class MovieController {
 
             Movie saved = movieRepository.save(existingMovie);
 
-            String successMsg = "Movie '" + movieTitle + "' was updated successfully. New title is '" 
-                                + saved.getTitle() + "'.";
+            String successMsg = "Movie '" + movieTitle + "' was updated successfully. New title is '"
+                    + saved.getTitle() + "'.";
             System.out.println("[MovieController] SUCCESS - " + successMsg);
 
             return ResponseEntity.ok(successMsg);
@@ -159,7 +161,8 @@ public class MovieController {
             // Return a user-friendly message
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Something went wrong while deleting '" + movieTitle + "'. Please try again or contact support.");
+                    .body("Something went wrong while deleting '" + movieTitle
+                            + "'. Please try again or contact support.");
         }
     }
 }
