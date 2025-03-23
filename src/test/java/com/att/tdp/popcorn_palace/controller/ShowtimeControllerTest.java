@@ -31,17 +31,10 @@ class ShowtimeControllerTest {
     @Autowired
     private ShowtimeRepository showtimeRepository;
 
-
-
     @BeforeEach
     void setUp() {
         // Clear the relevant DB tables
         showtimeRepository.deleteAll();
-        // For these tests, ensure at least one valid movie ID exists in the DB:
-        // e.g., create a dummy movie with ID=1 if needed, or assume already present
-        // since you're using a real Postgres DB, you might do:
-        // movieRepository.save(new Movie("TestTitle", "TestGenre", 120, 8.0, 2020));
-        // But only if you need a guaranteed movie with id=1 or 2, etc.
     }
 
     @Nested
@@ -52,20 +45,18 @@ class ShowtimeControllerTest {
         @DisplayName("Should create a valid showtime (200 OK)")
         @Rollback
         void shouldCreateValidShowtime() throws Exception {
-            // Make sure a valid movie exists (id=1)
-            // Or adapt to a real existing movie ID in your DB
-            // e.g. movieRepository.save(...) or assume it's there
 
             String body = """
-                {
-                  "movieId": 1,
-                  "theater": "Test Theater",
-                  "startTime": "2025-03-25T10:00:00",
-                  "endTime": "2025-03-25T12:00:00",
-                  "price": 12.50
-                }
-            """;
+                        {
+                          "movieId": 1,
+                          "theater": "Test Theater",
+                          "startTime": "2025-03-25T10:00:00",
+                          "endTime": "2025-03-25T12:00:00",
+                          "price": 12.50
+                        }
+                    """;
 
+            // Create a showtime
             mockMvc.perform(post("/showtimes")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
@@ -78,44 +69,46 @@ class ShowtimeControllerTest {
         @Rollback
         void shouldReturnBadRequestInvalidTimes() throws Exception {
             String body = """
-                {
-                  "movieId": 1,
-                  "theater": "Invalid Theater",
-                  "startTime": "2025-03-25T12:00:00",
-                  "endTime": "2025-03-25T12:00:00",
-                  "price": 10.0
-                }
-            """;
+                        {
+                          "movieId": 1,
+                          "theater": "Invalid Theater",
+                          "startTime": "2025-03-25T12:00:00",
+                          "endTime": "2025-03-25T12:00:00",
+                          "price": 10.0
+                        }
+                    """;
 
+            // Attempt to create a showtime with invalid times
             mockMvc.perform(post("/showtimes")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
                     .andExpect(status().isBadRequest())
-                    .andExpect(content().string(org.hamcrest.Matchers.containsString("endTime must be after startTime")));
+                    .andExpect(
+                            content().string(org.hamcrest.Matchers.containsString("endTime must be after startTime")));
         }
 
         @Test
         @DisplayName("Should return 409 if overlapping showtime in same theater")
         @Rollback
         void shouldReturnConflictForOverlap() throws Exception {
-            // Insert one showtime
             Showtime existing = new Showtime(1L, "Overlap Theater",
-                LocalDateTime.of(2025,3,25,10,0),
-                LocalDateTime.of(2025,3,25,12,0),
-                BigDecimal.valueOf(10.0));
+                    LocalDateTime.of(2025, 3, 25, 10, 0),
+                    LocalDateTime.of(2025, 3, 25, 12, 0),
+                    BigDecimal.valueOf(10.0));
             showtimeRepository.save(existing);
 
-            // Attempt another that overlaps in same theater
+            // Attempt to create a showtime that overlaps with the existing one
             String body = """
-                {
-                  "movieId": 1,
-                  "theater": "Overlap Theater",
-                  "startTime": "2025-03-25T11:30:00",
-                  "endTime": "2025-03-25T13:00:00",
-                  "price": 10.0
-                }
-            """;
+                        {
+                          "movieId": 1,
+                          "theater": "Overlap Theater",
+                          "startTime": "2025-03-25T11:30:00",
+                          "endTime": "2025-03-25T13:00:00",
+                          "price": 10.0
+                        }
+                    """;
 
+            // Expect a 409 Conflict
             mockMvc.perform(post("/showtimes")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
@@ -128,15 +121,16 @@ class ShowtimeControllerTest {
         @Rollback
         void shouldReturnBadRequestIfMovieMissing() throws Exception {
             String body = """
-                {
-                  "movieId": 999999,
-                  "theater": "Cinema Hall",
-                  "startTime": "2025-03-25T10:00:00",
-                  "endTime": "2025-03-25T12:00:00",
-                  "price": 10.0
-                }
-            """;
+                        {
+                          "movieId": 999999,
+                          "theater": "Cinema Hall",
+                          "startTime": "2025-03-25T10:00:00",
+                          "endTime": "2025-03-25T12:00:00",
+                          "price": 10.0
+                        }
+                    """;
 
+            // Attempt to create a showtime with a non-existent movieId
             mockMvc.perform(post("/showtimes")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
@@ -154,11 +148,11 @@ class ShowtimeControllerTest {
         void shouldReturnShowtime() throws Exception {
             Showtime saved = showtimeRepository.save(
                     new Showtime(1L, "Test Theater",
-                        LocalDateTime.of(2025,3,25,10,0),
-                        LocalDateTime.of(2025,3,25,12,0),
-                        BigDecimal.valueOf(10.0))
-            );
+                            LocalDateTime.of(2025, 3, 25, 10, 0),
+                            LocalDateTime.of(2025, 3, 25, 12, 0),
+                            BigDecimal.valueOf(10.0)));
 
+            // Fetch the showtime
             mockMvc.perform(get("/showtimes/" + saved.getId()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.theater").value("Test Theater"));
@@ -181,22 +175,22 @@ class ShowtimeControllerTest {
         @Rollback
         void shouldUpdateExistingShowtime() throws Exception {
             Showtime existing = showtimeRepository.save(
-                new Showtime(1L, "Update Theater",
-                    LocalDateTime.of(2025,3,25,10,0),
-                    LocalDateTime.of(2025,3,25,12,0),
-                    BigDecimal.valueOf(10.0))
-            );
+                    new Showtime(1L, "Update Theater",
+                            LocalDateTime.of(2025, 3, 25, 10, 0),
+                            LocalDateTime.of(2025, 3, 25, 12, 0),
+                            BigDecimal.valueOf(10.0)));
 
             String body = """
-                {
-                  "movieId": 1,
-                  "theater": "Updated Theater",
-                  "startTime": "2025-03-25T11:00:00",
-                  "endTime": "2025-03-25T13:00:00",
-                  "price": 15.0
-                }
-            """;
+                        {
+                          "movieId": 1,
+                          "theater": "Updated Theater",
+                          "startTime": "2025-03-25T11:00:00",
+                          "endTime": "2025-03-25T13:00:00",
+                          "price": 15.0
+                        }
+                    """;
 
+            // Update the showtime
             mockMvc.perform(post("/showtimes/update/" + existing.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
@@ -209,15 +203,16 @@ class ShowtimeControllerTest {
         @Rollback
         void shouldReturnNotFoundWhenMissing() throws Exception {
             String body = """
-                {
-                  "movieId": 1,
-                  "theater": "Doesn't matter",
-                  "startTime": "2025-03-25T10:00:00",
-                  "endTime": "2025-03-25T12:00:00",
-                  "price": 10.0
-                }
-            """;
+                        {
+                          "movieId": 1,
+                          "theater": "Doesn't matter",
+                          "startTime": "2025-03-25T10:00:00",
+                          "endTime": "2025-03-25T12:00:00",
+                          "price": 10.0
+                        }
+                    """;
 
+            // Attempt to update a non-existent showtime
             mockMvc.perform(post("/showtimes/update/999999")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
@@ -230,30 +225,28 @@ class ShowtimeControllerTest {
         void shouldReturnConflictIfOverlapOnUpdate() throws Exception {
             // Show 1
             showtimeRepository.save(
-                new Showtime(1L, "Overlap Theater",
-                    LocalDateTime.of(2025,3,25,10,0),
-                    LocalDateTime.of(2025,3,25,12,0),
-                    BigDecimal.valueOf(10.0))
-            );
+                    new Showtime(1L, "Overlap Theater",
+                            LocalDateTime.of(2025, 3, 25, 10, 0),
+                            LocalDateTime.of(2025, 3, 25, 12, 0),
+                            BigDecimal.valueOf(10.0)));
 
             // Show 2
             Showtime s2 = showtimeRepository.save(
-                new Showtime(1L, "Overlap Theater",
-                    LocalDateTime.of(2025,3,25,13,0),
-                    LocalDateTime.of(2025,3,25,14,0),
-                    BigDecimal.valueOf(8.0))
-            );
+                    new Showtime(1L, "Overlap Theater",
+                            LocalDateTime.of(2025, 3, 25, 13, 0),
+                            LocalDateTime.of(2025, 3, 25, 14, 0),
+                            BigDecimal.valueOf(8.0)));
 
             // Attempt to update showtime 2 so it now overlaps with showtime 1
             String body = """
-                {
-                  "movieId": 1,
-                  "theater": "Overlap Theater",
-                  "startTime": "2025-03-25T11:30:00",
-                  "endTime": "2025-03-25T13:30:00",
-                  "price": 9.0
-                }
-            """;
+                        {
+                          "movieId": 1,
+                          "theater": "Overlap Theater",
+                          "startTime": "2025-03-25T11:30:00",
+                          "endTime": "2025-03-25T13:30:00",
+                          "price": 9.0
+                        }
+                    """;
 
             mockMvc.perform(post("/showtimes/update/" + s2.getId())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -271,12 +264,12 @@ class ShowtimeControllerTest {
         @Rollback
         void shouldDeleteExisting() throws Exception {
             Showtime s = showtimeRepository.save(
-                new Showtime(1L, "Delete Theater",
-                    LocalDateTime.of(2025,3,25,10,0),
-                    LocalDateTime.of(2025,3,25,12,0),
-                    BigDecimal.valueOf(10.0))
-            );
+                    new Showtime(1L, "Delete Theater",
+                            LocalDateTime.of(2025, 3, 25, 10, 0),
+                            LocalDateTime.of(2025, 3, 25, 12, 0),
+                            BigDecimal.valueOf(10.0)));
 
+            // Delete the showtime
             mockMvc.perform(delete("/showtimes/" + s.getId()))
                     .andExpect(status().isOk())
                     .andExpect(content().string(org.hamcrest.Matchers.containsString("was deleted successfully")));
@@ -286,6 +279,7 @@ class ShowtimeControllerTest {
         @DisplayName("Should return 404 if showtime not found")
         @Rollback
         void shouldReturnNotFound() throws Exception {
+            // Attempt to delete a non-existent showtime
             mockMvc.perform(delete("/showtimes/999999"))
                     .andExpect(status().isNotFound());
         }

@@ -18,17 +18,16 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
      * during an update scenario.
      */
     @Query("""
-        SELECT s
-        FROM Showtime s
-        WHERE s.theater = :theater
-          AND s.id <> :ignoreId
-          AND (:startTime < s.endTime)
-          AND (s.startTime < :endTime)
-    """)
+                SELECT s
+                FROM Showtime s
+                WHERE s.theater = :theater
+                  AND s.id <> :ignoreId
+                  AND (:startTime < s.endTime)
+                  AND (s.startTime < :endTime)
+            """)
     List<Showtime> findOverlappingShowtimes(
-        @Param("theater") String theater,
-        @Param("startTime") LocalDateTime startTime,
-        @Param("endTime") LocalDateTime endTime,
-        @Param("ignoreId") Long ignoreId
-    );
+            @Param("theater") String theater,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("ignoreId") Long ignoreId);
 }

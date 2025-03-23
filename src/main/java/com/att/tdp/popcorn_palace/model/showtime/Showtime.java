@@ -38,7 +38,6 @@ public class Showtime {
 
     // Constructors
     public Showtime() {
-        // Default constructor for JPA
     }
 
     public Showtime(Long movieId, String theater, LocalDateTime startTime, LocalDateTime endTime, BigDecimal price) {

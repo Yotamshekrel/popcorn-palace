@@ -32,19 +32,18 @@ class ShowtimeRepositoryTest {
         @Test
         @DisplayName("Should return no overlaps when none exist")
         void shouldReturnNone() {
-            // Setup
+            // Create a showtime from 10:00 - 12:00
             showtimeRepository.save(new Showtime(1L, "TheaterA",
-                LocalDateTime.of(2025,3,25,10,0),
-                LocalDateTime.of(2025,3,25,12,0),
-                BigDecimal.valueOf(10.0)));
+                    LocalDateTime.of(2025, 3, 25, 10, 0),
+                    LocalDateTime.of(2025, 3, 25, 12, 0),
+                    BigDecimal.valueOf(10.0)));
 
             // Test a new range that does NOT overlap
             List<Showtime> overlaps = showtimeRepository.findOverlappingShowtimes(
-                "TheaterA",
-                LocalDateTime.of(2025,3,25,12,0),
-                LocalDateTime.of(2025,3,25,13,0),
-                0L
-            );
+                    "TheaterA",
+                    LocalDateTime.of(2025, 3, 25, 12, 0),
+                    LocalDateTime.of(2025, 3, 25, 13, 0),
+                    0L);
 
             assertThat(overlaps).isEmpty();
         }
@@ -52,17 +51,18 @@ class ShowtimeRepositoryTest {
         @Test
         @DisplayName("Should detect overlapping times")
         void shouldDetectOverlap() {
+            // Create a showtime from 10:00 - 12:00
             Showtime existing = showtimeRepository.save(new Showtime(1L, "OverlapTheater",
-                LocalDateTime.of(2025,3,25,10,0),
-                LocalDateTime.of(2025,3,25,12,0),
-                BigDecimal.valueOf(10.0)));
+                    LocalDateTime.of(2025, 3, 25, 10, 0),
+                    LocalDateTime.of(2025, 3, 25, 12, 0),
+                    BigDecimal.valueOf(10.0)));
 
             // Query that intersects 10:00 - 12:00
             List<Showtime> overlaps = showtimeRepository.findOverlappingShowtimes(
-                "OverlapTheater",
-                LocalDateTime.of(2025,3,25,11,30),
-                LocalDateTime.of(2025,3,25,12,30),
-                0L // ignoreId=0 means new
+                    "OverlapTheater",
+                    LocalDateTime.of(2025, 3, 25, 11, 30),
+                    LocalDateTime.of(2025, 3, 25, 12, 30),
+                    0L // ignoreId=0 means new
             );
 
             assertThat(overlaps).hasSize(1);
@@ -72,17 +72,18 @@ class ShowtimeRepositoryTest {
         @Test
         @DisplayName("Should exclude itself when ignoring ID on update")
         void shouldExcludeItself() {
+            // Create a showtime from 10:00 - 12:00
             Showtime s = showtimeRepository.save(new Showtime(1L, "SameTheater",
-                LocalDateTime.of(2025,3,25,10,0),
-                LocalDateTime.of(2025,3,25,12,0),
-                BigDecimal.valueOf(10.0)));
+                    LocalDateTime.of(2025, 3, 25, 10, 0),
+                    LocalDateTime.of(2025, 3, 25, 12, 0),
+                    BigDecimal.valueOf(10.0)));
 
             // Overlap query that matches the same showtime
             List<Showtime> overlaps = showtimeRepository.findOverlappingShowtimes(
-                "SameTheater",
-                LocalDateTime.of(2025,3,25,10,30),
-                LocalDateTime.of(2025,3,25,11,0),
-                s.getId() // We pass the same ID
+                    "SameTheater",
+                    LocalDateTime.of(2025, 3, 25, 10, 30),
+                    LocalDateTime.of(2025, 3, 25, 11, 0),
+                    s.getId() // We pass the same ID
             );
             // Because we pass ignoreId = s.getId(), it should NOT be considered an overlap
             assertThat(overlaps).isEmpty();
@@ -91,17 +92,18 @@ class ShowtimeRepositoryTest {
         @Test
         @DisplayName("Should not overlap if different theater")
         void differentTheater() {
+            // Create a showtime from 10:00 - 12:00
             showtimeRepository.save(new Showtime(1L, "TheaterX",
-                LocalDateTime.of(2025,3,25,10,0),
-                LocalDateTime.of(2025,3,25,12,0),
-                BigDecimal.valueOf(10.0)));
+                    LocalDateTime.of(2025, 3, 25, 10, 0),
+                    LocalDateTime.of(2025, 3, 25, 12, 0),
+                    BigDecimal.valueOf(10.0)));
 
+            // Query that intersects 10:00 - 12:00 but in a different theater
             List<Showtime> overlaps = showtimeRepository.findOverlappingShowtimes(
-                "DifferentTheater",
-                LocalDateTime.of(2025,3,25,11,0),
-                LocalDateTime.of(2025,3,25,12,0),
-                0L
-            );
+                    "DifferentTheater",
+                    LocalDateTime.of(2025, 3, 25, 11, 0),
+                    LocalDateTime.of(2025, 3, 25, 12, 0),
+                    0L);
             assertThat(overlaps).isEmpty();
         }
     }
@@ -109,9 +111,10 @@ class ShowtimeRepositoryTest {
     @Test
     @DisplayName("Should save and retrieve a showtime")
     void shouldSaveRetrieve() {
+        // Create a showtime
         Showtime s = new Showtime(2L, "BasicTheater",
-                LocalDateTime.of(2025,3,30,14,0),
-                LocalDateTime.of(2025,3,30,16,0),
+                LocalDateTime.of(2025, 3, 30, 14, 0),
+                LocalDateTime.of(2025, 3, 30, 16, 0),
                 BigDecimal.valueOf(15.0));
         Showtime saved = showtimeRepository.save(s);
 

@@ -22,16 +22,16 @@ public class ShowtimeController {
     private ShowtimeRepository showtimeRepository;
 
     @Autowired
-    private MovieRepository movieRepository; 
-    // only if you want to check: movieRepository.existsById(...) before creation
+    private MovieRepository movieRepository;
 
     /**
-     * Create a new showtime.
      * Endpoint: POST /showtimes
+     * Create a new showtime.
      */
     @PostMapping
     public ResponseEntity<String> createShowtime(@Valid @RequestBody ShowtimeRequest request) {
-        System.out.println("[ShowtimeController] INFO - Request to create showtime for movieId=" + request.getMovieId());
+        System.out
+                .println("[ShowtimeController] INFO - Request to create showtime for movieId=" + request.getMovieId());
 
         // 1) Check if the movie exists
         if (!movieRepository.existsById(request.getMovieId())) {
@@ -69,7 +69,7 @@ public class ShowtimeController {
     }
 
     /**
-     * GET /showtimes/{id}
+     * Endpoint: GET /showtimes
      * Fetch a specific showtime by ID
      */
     @GetMapping("/{id}")
@@ -86,7 +86,7 @@ public class ShowtimeController {
     }
 
     /**
-     * POST /showtimes/update/{id}
+     * Endpoint: POST /showtimes/update/{id}
      * Update an existing showtime by ID
      */
     @PostMapping("/update/{id}")
@@ -115,8 +115,7 @@ public class ShowtimeController {
                 request.getTheater(),
                 request.getStartTime(),
                 request.getEndTime(),
-                id
-        ).isEmpty();
+                id).isEmpty();
 
         if (overlap) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -135,7 +134,7 @@ public class ShowtimeController {
     }
 
     /**
-     * DELETE /showtimes/{id}
+     * Endpoint: DELETE /showtimes/{id}
      * Delete an existing showtime by ID
      */
     @DeleteMapping("/{id}")

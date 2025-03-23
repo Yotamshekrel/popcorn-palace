@@ -26,10 +26,11 @@ public class ShowtimeRequest {
     private BigDecimal price;
 
     // Constructors
-    public ShowtimeRequest() {}
+    public ShowtimeRequest() {
+    }
 
     public ShowtimeRequest(Long movieId, String theater, LocalDateTime startTime,
-                           LocalDateTime endTime, BigDecimal price) {
+            LocalDateTime endTime, BigDecimal price) {
         this.movieId = movieId;
         this.theater = theater;
         this.startTime = startTime;
@@ -38,18 +39,43 @@ public class ShowtimeRequest {
     }
 
     // Getters / Setters
-    public Long getMovieId() { return movieId; }
-    public void setMovieId(Long movieId) { this.movieId = movieId; }
+    public Long getMovieId() {
+        return movieId;
+    }
 
-    public String getTheater() { return theater; }
-    public void setTheater(String theater) { this.theater = theater; }
+    public void setMovieId(Long movieId) {
+        this.movieId = movieId;
+    }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public String getTheater() {
+        return theater;
+    }
 
-    public LocalDateTime getEndTime() { return endTime; }
-    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public void setTheater(String theater) {
+        this.theater = theater;
+    }
 
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
 }
