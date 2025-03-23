@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/showtimes")
@@ -73,14 +74,16 @@ public class ShowtimeController {
      * Fetch a specific showtime by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Showtime> getShowtime(@PathVariable Long id) {
+    public ResponseEntity<?> getShowtime(@PathVariable Long id) {
         System.out.println("[ShowtimeController] INFO - Fetching showtime id=" + id);
 
         Optional<Showtime> found = showtimeRepository.findById(id);
         if (found.isEmpty()) {
-            System.out.println("[ShowtimeController] WARN - Showtime not found for id=" + id);
-            return ResponseEntity.notFound().build();
+            String msg = "Showtime with ID " + id + " not found.";
+            System.out.println("[ShowtimeController] WARN - " + msg);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
+        
 
         return ResponseEntity.ok(found.get());
     }
@@ -96,8 +99,9 @@ public class ShowtimeController {
         // 1) Find existing
         Optional<Showtime> existingOpt = showtimeRepository.findById(id);
         if (existingOpt.isEmpty()) {
-            System.out.println("[ShowtimeController] WARN - Showtime not found for id=" + id);
-            return ResponseEntity.notFound().build();
+            String msg = "Showtime with ID " + id + " not found. Update aborted.";
+            System.out.println("[ShowtimeController] WARN - " + msg);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
 
         // 2) Validate movie existence
@@ -142,8 +146,9 @@ public class ShowtimeController {
         System.out.println("[ShowtimeController] INFO - Deleting showtime id=" + id);
 
         if (!showtimeRepository.existsById(id)) {
-            System.out.println("[ShowtimeController] WARN - No showtime found for id=" + id);
-            return ResponseEntity.notFound().build();
+            String msg = "Showtime with ID " + id + " not found. Nothing to delete.";
+            System.out.println("[ShowtimeController] WARN - " + msg);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
 
         // Perform the delete
