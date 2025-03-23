@@ -45,18 +45,18 @@ class MovieIntegrationTest {
         URI getUri = URI.create("http://localhost:" + port + "/movies/all");
         ResponseEntity<Movie[]> getAllResp = restTemplate.getForEntity(getUri, Movie[].class);
         int initialCount = getAllResp.getBody().length;
-       
+
         // 2. CREATE a new movie
         URI uri = URI.create("http://localhost:" + port + "/movies");
         String requestBody = """
-            {
-              "title": "IntegrationMovie",
-              "genre": "Adventure",
-              "duration": 120,
-              "rating": 8.0,
-              "releaseYear": 2010
-            }
-        """;
+                    {
+                      "title": "IntegrationMovie",
+                      "genre": "Adventure",
+                      "duration": 120,
+                      "rating": 8.0,
+                      "releaseYear": 2010
+                    }
+                """;
         // 3. POST /movies with the new movie data
         ResponseEntity<String> createResp = restTemplate.postForEntity(uri,
                 new HttpEntity<>(requestBody, createJsonHeaders()), String.class);
@@ -65,31 +65,32 @@ class MovieIntegrationTest {
         assertThat(createResp.getBody()).contains("Successfully created the movie");
 
         // 4. GET /movies/all to confirm it's present
-         getUri = URI.create("http://localhost:" + port + "/movies/all");
-         getAllResp = restTemplate.getForEntity(getUri, Movie[].class);
+        getUri = URI.create("http://localhost:" + port + "/movies/all");
+        getAllResp = restTemplate.getForEntity(getUri, Movie[].class);
 
         assertThat(getAllResp.getStatusCode()).isEqualTo(HttpStatus.OK);
         Movie[] movies = getAllResp.getBody();
         assertThat(movies).isNotNull();
         assertThat(movies.length).isEqualTo(initialCount + 1);
         assertThat(movies[initialCount].getTitle()).isEqualTo("IntegrationMovie");
-        
+
         // 5. UPDATE /movies/IntegrationMovie to change its data
         URI updateUri = URI.create("http://localhost:" + port + "/movies/update/IntegrationMovie");
         String updateRequestBody = """
-            {
-              "title": "UpdatedIntegrationMovie",
-              "genre": "Action",
-              "duration": 130,
-              "rating": 9.0,
-              "releaseYear": 2012
-            }
-        """;
+                    {
+                      "title": "UpdatedIntegrationMovie",
+                      "genre": "Action",
+                      "duration": 130,
+                      "rating": 9.0,
+                      "releaseYear": 2012
+                    }
+                """;
         ResponseEntity<String> updateResp = restTemplate.exchange(updateUri, HttpMethod.POST,
                 new HttpEntity<>(updateRequestBody, createJsonHeaders()), String.class);
 
         assertThat(updateResp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(updateResp.getBody()).contains("Movie 'IntegrationMovie' was updated successfully. New title is 'UpdatedIntegrationMovie");
+        assertThat(updateResp.getBody())
+                .contains("Movie 'IntegrationMovie' was updated successfully. New title is 'UpdatedIntegrationMovie");
 
         // Confirm the update
         getUri = URI.create("http://localhost:" + port + "/movies/all");

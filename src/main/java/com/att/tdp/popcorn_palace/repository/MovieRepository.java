@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 public interface MovieRepository extends JpaRepository<Movie, Long> {
-    
+
     /**
      * Find a movie by its title.
      * 

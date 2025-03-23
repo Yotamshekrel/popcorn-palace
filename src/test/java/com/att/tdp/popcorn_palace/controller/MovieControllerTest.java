@@ -30,9 +30,9 @@ class MovieControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Clear DB before each test. 
-        // Because we're @Transactional + each test is rolled back, 
-        // we typically start fresh. 
+        // Clear DB before each test.
+        // Because we're @Transactional + each test is rolled back,
+        // we typically start fresh.
         movieRepository.deleteAll();
     }
 
@@ -71,20 +71,21 @@ class MovieControllerTest {
         @Rollback
         void shouldCreateValidMovie() throws Exception {
             String body = """
-                {
-                  "title": "NewMovie",
-                  "genre": "Action",
-                  "duration": 100,
-                  "rating": 7.5,
-                  "releaseYear": 2005
-                }
-            """;
+                        {
+                          "title": "NewMovie",
+                          "genre": "Action",
+                          "duration": 100,
+                          "rating": 7.5,
+                          "releaseYear": 2005
+                        }
+                    """;
 
             mockMvc.perform(post("/movies")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
                     .andExpect(status().isOk())
-                    .andExpect(content().string(org.hamcrest.Matchers.containsString("Successfully created the movie:")));
+                    .andExpect(
+                            content().string(org.hamcrest.Matchers.containsString("Successfully created the movie:")));
         }
 
         @Test
@@ -94,20 +95,21 @@ class MovieControllerTest {
             movieRepository.save(new Movie("DupTitle", "SciFi", 120, 8.0, 2010));
 
             String body = """
-                {
-                  "title": "DupTitle",
-                  "genre": "SciFi",
-                  "duration": 120,
-                  "rating": 8.0,
-                  "releaseYear": 2010
-                }
-            """;
+                        {
+                          "title": "DupTitle",
+                          "genre": "SciFi",
+                          "duration": 120,
+                          "rating": 8.0,
+                          "releaseYear": 2010
+                        }
+                    """;
 
             mockMvc.perform(post("/movies")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
                     .andExpect(status().isConflict())
-                    .andExpect(content().string(org.hamcrest.Matchers.containsString("Another movie already has the title")));
+                    .andExpect(content()
+                            .string(org.hamcrest.Matchers.containsString("Another movie already has the title")));
         }
 
         @Test
@@ -115,14 +117,14 @@ class MovieControllerTest {
         @Rollback
         void shouldReturnBadRequestForInvalidRating() throws Exception {
             String body = """
-                {
-                  "title": "BadRating",
-                  "genre": "Action",
-                  "duration": 120,
-                  "rating": 15.0,
-                  "releaseYear": 2000
-                }
-            """;
+                        {
+                          "title": "BadRating",
+                          "genre": "Action",
+                          "duration": 120,
+                          "rating": 15.0,
+                          "releaseYear": 2000
+                        }
+                    """;
 
             mockMvc.perform(post("/movies")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -142,14 +144,14 @@ class MovieControllerTest {
             movieRepository.save(new Movie("OldTitle", "Action", 100, 7.0, 2001));
 
             String body = """
-                {
-                  "title": "NewTitle",
-                  "genre": "Adventure",
-                  "duration": 130,
-                  "rating": 8.0,
-                  "releaseYear": 2020
-                }
-            """;
+                        {
+                          "title": "NewTitle",
+                          "genre": "Adventure",
+                          "duration": 130,
+                          "rating": 8.0,
+                          "releaseYear": 2020
+                        }
+                    """;
 
             mockMvc.perform(post("/movies/update/OldTitle")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -163,14 +165,14 @@ class MovieControllerTest {
         @Rollback
         void shouldReturnNotFoundIfTitleMissing() throws Exception {
             String body = """
-                {
-                  "title": "AnyTitle",
-                  "genre": "Comedy",
-                  "duration": 90,
-                  "rating": 6.0,
-                  "releaseYear": 2018
-                }
-            """;
+                        {
+                          "title": "AnyTitle",
+                          "genre": "Comedy",
+                          "duration": 90,
+                          "rating": 6.0,
+                          "releaseYear": 2018
+                        }
+                    """;
 
             mockMvc.perform(post("/movies/update/NonExistent")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -186,20 +188,21 @@ class MovieControllerTest {
             movieRepository.save(new Movie("MovieB", "Drama", 100, 7.0, 2011));
 
             String body = """
-                {
-                  "title": "MovieB",
-                  "genre": "Comedy",
-                  "duration": 90,
-                  "rating": 6.0,
-                  "releaseYear": 2018
-                }
-            """;
+                        {
+                          "title": "MovieB",
+                          "genre": "Comedy",
+                          "duration": 90,
+                          "rating": 6.0,
+                          "releaseYear": 2018
+                        }
+                    """;
 
             mockMvc.perform(post("/movies/update/MovieA")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body))
                     .andExpect(status().isConflict())
-                    .andExpect(content().string(org.hamcrest.Matchers.containsString("title 'MovieB' is already used")));
+                    .andExpect(
+                            content().string(org.hamcrest.Matchers.containsString("title 'MovieB' is already used")));
         }
     }
 
