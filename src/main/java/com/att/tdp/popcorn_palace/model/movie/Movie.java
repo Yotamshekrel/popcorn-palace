@@ -1,4 +1,4 @@
-package com.att.tdp.popcorn_palace.model;
+package com.att.tdp.popcorn_palace.model.movie;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
