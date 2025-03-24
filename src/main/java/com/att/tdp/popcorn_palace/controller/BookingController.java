@@ -8,9 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles booking tickets according to the README:
@@ -19,6 +20,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/bookings")
 public class BookingController {
+
+    private static final Logger logger = LoggerFactory.getLogger(BookingController.class);
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -38,15 +41,15 @@ public class BookingController {
      */
     @PostMapping
     public ResponseEntity<?> bookTicket(@Valid @RequestBody BookingRequest request) {
-        System.out.println("[BookingController] INFO - Booking ticket for showtime=" + request.getShowtimeId()
-                + ", seat=" + request.getSeatNumber() + ", user=" + request.getUserId());
+        logger.info("Booking ticket for showtime={}, seat={}, user={}",
+                request.getShowtimeId(), request.getSeatNumber(), request.getUserId());
 
-        // 1) Check if showtime exists
+        // Check if showtime exists
         if (!showtimeRepository.existsById(request.getShowtimeId())) {
             return ResponseEntity.badRequest().body("No showtime found with id=" + request.getShowtimeId());
         }
 
-        // 2) Check if seat is taken
+        // Check if seat is taken
         boolean seatTaken = bookingRepository.existsByShowtimeIdAndSeatNumber(
                 request.getShowtimeId(), request.getSeatNumber());
         if (seatTaken) {
@@ -55,7 +58,7 @@ public class BookingController {
                             + request.getShowtimeId());
         }
 
-        // 3) Convert userId from String -> UUID
+        // Convert userId from String -> UUID
         UUID userUuid;
         try {
             userUuid = UUID.fromString(request.getUserId());
@@ -63,13 +66,13 @@ public class BookingController {
             return ResponseEntity.badRequest().body("Invalid userId: must be a valid UUID");
         }
 
-        // 4) Create & save booking
+        // Create & save booking
         Booking booking = new Booking(request.getShowtimeId(), userUuid, request.getSeatNumber());
         booking = bookingRepository.save(booking);
 
-        // 5) Return 200 OK + bookingId
+        // Return booking ID
+        logger.info("Booking confirmed! Your booking ID is: {}", booking.getId());
         String msg = "Booking confirmed! Your booking ID is: " + booking.getId();
         return ResponseEntity.ok(msg);
-
     }
 }

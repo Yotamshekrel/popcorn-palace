@@ -11,12 +11,17 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Controller for handling all movie-related API endpoints.
  */
 @RestController
 @RequestMapping("/movies")
 public class MovieController {
+
+    private static final Logger logger = LoggerFactory.getLogger(MovieController.class);
 
     @Autowired
     private MovieRepository movieRepository;
@@ -30,11 +35,10 @@ public class MovieController {
      */
     @GetMapping("/all")
     public ResponseEntity<List<Movie>> getAllMovies() {
-        System.out.println("[MovieController] INFO - Request to fetch all movies.");
+        logger.info("[MovieController] INFO - Request to fetch all movies.");
         List<Movie> movies = movieRepository.findAll();
 
-        System.out.println("[MovieController] INFO - Returning " + movies.size() + " movies.");
-
+        logger.info("[MovieController] INFO - Returning " + movies.size() + " movies.");
         return ResponseEntity.ok(movies);
     }
 
@@ -52,7 +56,11 @@ public class MovieController {
      */
     @PostMapping
     public ResponseEntity<String> addMovie(@Valid @RequestBody MovieRequest movieDto) {
+        logger.info("[MovieController] INFO - Request to create a new movie: " + movieDto.getTitle());
+
+        // Check if a movie with the same title already exists
         if (movieRepository.existsByTitle(movieDto.getTitle())) {
+            logger.warn("[MovieController] WARN - Movie with title '" + movieDto.getTitle() + "' already exists.");
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body("Another movie already has the title '" + movieDto.getTitle()
@@ -61,7 +69,10 @@ public class MovieController {
 
         Movie savedMovie = movieRepository.save(mapToEntity(movieDto));
 
-        String successMsg = "Successfully created the movie: '" + savedMovie.getTitle() + "with id: "+savedMovie.getId()+ "'.";
+        // Log success and return the saved movie
+        String successMsg = "Successfully created the movie: '" + savedMovie.getTitle() + "with id: "
+                + savedMovie.getId() + "'.";
+        logger.info("[MovieController] SUCCESS - " + successMsg);
         return ResponseEntity.ok(successMsg);
 
     }
@@ -82,15 +93,20 @@ public class MovieController {
             @PathVariable String movieTitle,
             @Valid @RequestBody MovieRequest updatedData) {
         return movieRepository.findByTitle(movieTitle).map(existingMovie -> {
+            logger.info("[MovieController] INFO - Updating movie: '" + movieTitle + "'");
+
             boolean wantsToRename = !movieTitle.equals(updatedData.getTitle());
             boolean newTitleTaken = movieRepository.existsByTitle(updatedData.getTitle());
 
+            // If the new title is taken, return a conflict
             if (wantsToRename && newTitleTaken) {
+                logger.warn("[MovieController] WARN - New title '" + updatedData.getTitle() + "' is already taken.");
                 return ResponseEntity
                         .status(HttpStatus.CONFLICT)
                         .body("Sorry, the title '" + updatedData.getTitle() + "' is already used by another movie.");
             }
 
+            // Update the movie details
             existingMovie.setTitle(updatedData.getTitle());
             existingMovie.setGenre(updatedData.getGenre());
             existingMovie.setDuration(updatedData.getDuration());
@@ -99,8 +115,10 @@ public class MovieController {
 
             Movie saved = movieRepository.save(existingMovie);
 
+            // Log success and return the updated movie
             String successMsg = "Movie '" + movieTitle + "' was updated successfully. New title is '"
                     + saved.getTitle() + "'.";
+            logger.info("[MovieController] SUCCESS - " + successMsg);
             return ResponseEntity.ok(successMsg);
 
         }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -119,12 +137,12 @@ public class MovieController {
      */
     @DeleteMapping("/{movieTitle}")
     public ResponseEntity<String> deleteMovieByTitle(@PathVariable String movieTitle) {
-        System.out.println("[MovieController] INFO - Attempting to delete movie: '" + movieTitle + "'");
+        logger.info("[MovieController] INFO - Attempting to delete movie: '" + movieTitle + "'");
 
         // Check if there's a matching movie
         boolean movieExists = movieRepository.existsByTitle(movieTitle);
         if (!movieExists) {
-            System.out.println("[MovieController] WARN - Movie '" + movieTitle + "' does not exist for deletion.");
+            logger.warn("[MovieController] WARN - Movie '" + movieTitle + "' does not exist for deletion.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("No movie found with title '" + movieTitle + "'. Could not delete.");
         }
@@ -134,14 +152,13 @@ public class MovieController {
             movieRepository.deleteByTitle(movieTitle);
 
             String successMsg = "Movie '" + movieTitle + "' was removed successfully.";
-            System.out.println("[MovieController] SUCCESS - " + successMsg);
+            logger.info("[MovieController] SUCCESS - " + successMsg);
             return ResponseEntity.ok(successMsg);
 
         } catch (Exception e) {
-            System.out.println("[MovieController] ERROR - Exception while deleting movie: " + e.getMessage());
             e.printStackTrace();
 
-            // Return a user-friendly message
+            logger.error("[MovieController] ERROR - Exception while deleting movie: " + e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Something went wrong while deleting '" + movieTitle

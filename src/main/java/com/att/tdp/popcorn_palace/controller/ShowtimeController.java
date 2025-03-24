@@ -14,9 +14,14 @@ import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/showtimes")
 public class ShowtimeController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ShowtimeController.class);
 
     @Autowired
     private ShowtimeRepository showtimeRepository;
@@ -30,22 +35,22 @@ public class ShowtimeController {
      */
     @PostMapping
     public ResponseEntity<String> createShowtime(@Valid @RequestBody ShowtimeRequest request) {
-        System.out
-                .println("[ShowtimeController] INFO - Request to create showtime for movieId=" + request.getMovieId());
+        logger.info("[ShowtimeController] INFO - Request to create a new showtime");
 
-        // 1) Check if the movie exists
+        // Check if the movie exists
         if (!movieRepository.existsById(request.getMovieId())) {
-            System.out.println("[ShowtimeController] WARN - Movie with id=" + request.getMovieId() + " not found");
+            logger.warn("Movie with id={} not found", request.getMovieId());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("No movie found with id=" + request.getMovieId());
         }
 
-        // 2) Check if endTime > startTime
+        // Check if endTime > startTime
         if (!request.getEndTime().isAfter(request.getStartTime())) {
+            logger.warn("endTime must be after startTime");
             return ResponseEntity.badRequest().body("endTime must be after startTime");
         }
 
-        // 3) Check overlap with existing showtimes in the same theater
+        // Check overlap with existing showtimes in the same theater
         boolean overlap = !showtimeRepository.findOverlappingShowtimes(
                 request.getTheater(),
                 request.getStartTime(),
@@ -54,17 +59,17 @@ public class ShowtimeController {
         ).isEmpty();
 
         if (overlap) {
-            System.out.println("[ShowtimeController] WARN - Overlapping showtime in theater " + request.getTheater());
+            logger.warn("Overlapping showtime in theater '{}'", request.getTheater());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Another showtime overlaps in theater '" + request.getTheater() + "'.");
         }
 
-        // 4) Save to DB
+        // Save to DB
         Showtime showtime = mapRequestToEntity(request, null); // no existing ID yet
         Showtime saved = showtimeRepository.save(showtime);
 
         String msg = "Successfully created showtime with id: " + saved.getId();
-        System.out.println("[ShowtimeController] SUCCESS - " + msg);
+        logger.info("[ShowtimeController] INFO - " + msg);
         return ResponseEntity.ok(msg);
     }
 
@@ -74,16 +79,16 @@ public class ShowtimeController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getShowtime(@PathVariable Long id) {
-        System.out.println("[ShowtimeController] INFO - Fetching showtime id=" + id);
+        logger.info("[ShowtimeController] INFO - Fetching showtime id={}", id);
 
         Optional<Showtime> found = showtimeRepository.findById(id);
         if (found.isEmpty()) {
             String msg = "Showtime with ID " + id + " not found.";
-            System.out.println("[ShowtimeController] WARN - " + msg);
+            logger.warn("[ShowtimeController] WARN - " + msg);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
-        
 
+        logger.info("[ShowtimeController] SUCCESS - Found showtime id={}", id);
         return ResponseEntity.ok(found.get());
     }
 
@@ -93,27 +98,29 @@ public class ShowtimeController {
      */
     @PostMapping("/update/{id}")
     public ResponseEntity<String> updateShowtime(@PathVariable Long id, @Valid @RequestBody ShowtimeRequest request) {
-        System.out.println("[ShowtimeController] INFO - Request to update showtime id=" + id);
+        logger.info("[ShowtimeController] INFO - Request to update showtime id={}", id);
 
-        // 1) Find existing
+        // Find existing
         Optional<Showtime> existingOpt = showtimeRepository.findById(id);
         if (existingOpt.isEmpty()) {
             String msg = "Showtime with ID " + id + " not found. Update aborted.";
-            System.out.println("[ShowtimeController] WARN - " + msg);
+            logger.warn("[ShowtimeController] WARN - " + msg);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
 
-        // 2) Validate movie existence
+        // Validate movie existence
         if (!movieRepository.existsById(request.getMovieId())) {
+            logger.warn("Movie with id={} not found", request.getMovieId());
             return ResponseEntity.badRequest().body("No movie found with id=" + request.getMovieId());
         }
 
-        // 3) Validate time range
+        // Validate time range
         if (!request.getEndTime().isAfter(request.getStartTime())) {
+            logger.warn("endTime must be after startTime");
             return ResponseEntity.badRequest().body("endTime must be after startTime");
         }
 
-        // 4) Check overlap (exclude itself)
+        // Check overlap (exclude itself)
         boolean overlap = !showtimeRepository.findOverlappingShowtimes(
                 request.getTheater(),
                 request.getStartTime(),
@@ -121,6 +128,7 @@ public class ShowtimeController {
                 id).isEmpty();
 
         if (overlap) {
+            logger.warn("Overlapping showtime in theater '{}'", request.getTheater());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Overlapping showtime in theater '" + request.getTheater() + "'.");
         }
@@ -132,7 +140,7 @@ public class ShowtimeController {
         showtimeRepository.save(updatedEntity);
 
         String msg = "Showtime id=" + id + " updated successfully.";
-        System.out.println("[ShowtimeController] SUCCESS - " + msg);
+        logger.info("[ShowtimeController] SUCCESS - " + msg);
         return ResponseEntity.ok(msg);
     }
 
@@ -142,18 +150,19 @@ public class ShowtimeController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteShowtime(@PathVariable Long id) {
-        System.out.println("[ShowtimeController] INFO - Deleting showtime id=" + id);
+        logger.info("[ShowtimeController] INFO - Deleting showtime id={}", id);
 
+        // Check if showtime exists
         if (!showtimeRepository.existsById(id)) {
             String msg = "Showtime with ID " + id + " not found. Nothing to delete.";
-            System.out.println("[ShowtimeController] WARN - " + msg);
+            logger.warn("[ShowtimeController] WARN - " + msg);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
         }
 
         // Perform the delete
         showtimeRepository.deleteById(id);
         String msg = "Showtime id=" + id + " was deleted successfully.";
-        System.out.println("[ShowtimeController] SUCCESS - " + msg);
+        logger.info("[ShowtimeController] SUCCESS - " + msg);
         return ResponseEntity.ok(msg);
     }
 

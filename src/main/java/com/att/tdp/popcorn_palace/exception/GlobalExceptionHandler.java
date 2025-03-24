@@ -1,5 +1,7 @@
 package com.att.tdp.popcorn_palace.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,8 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     /**
      * Handles Bean Validation (@Valid) errors before hitting DB
      */
@@ -25,7 +29,7 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toList());
 
         String errorMessage = "Validation failed: " + String.join(", ", messages);
-        System.out.println("[GlobalExceptionHandler] WARN - " + errorMessage);
+        logger.warn("[GlobalExceptionHandler] Validation error - {}", errorMessage);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
     }
 
@@ -41,7 +45,7 @@ public class GlobalExceptionHandler {
             message = "Rating must be 10.0 or less (violated DB constraint)";
         }
 
-        System.out.println("[GlobalExceptionHandler] ERROR - DB constraint violation: " + message);
+        logger.error("[GlobalExceptionHandler] DB constraint violation - {}", message);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Database constraint violated: " + message);
     }
 }
