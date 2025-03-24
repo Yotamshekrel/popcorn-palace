@@ -43,35 +43,16 @@ public class Booking {
     }
 
     // Getters & setters
-    public UUID getId() {
-        return id;
-    }
+    public UUID getId() {return id;}
 
-    public Long getShowtimeId() {
-        return showtimeId;
-    }
+    public Long getShowtimeId() {return showtimeId;}
+    public void setShowtimeId(Long showtimeId) {this.showtimeId = showtimeId;}
 
-    public void setShowtimeId(Long showtimeId) {
-        this.showtimeId = showtimeId;
-    }
+    public UUID getUserId() {return userId;}
+    public void setUserId(UUID userId) {this.userId = userId;}
 
-    public UUID getUserId() {
-        return userId;
-    }
+    public int getSeatNumber() {return seatNumber;}
+    public void setSeatNumber(int seatNumber) { this.seatNumber = seatNumber;}
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-
-    public int getSeatNumber() {
-        return seatNumber;
-    }
-
-    public void setSeatNumber(int seatNumber) {
-        this.seatNumber = seatNumber;
-    }
-
-    public LocalDateTime getBookingTime() {
-        return bookingTime;
-    }
+    public LocalDateTime getBookingTime() {return bookingTime;}
 }

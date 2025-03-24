@@ -19,7 +19,8 @@ public class BookingRequest {
     private String userId;
 
     // Constructors
-    public BookingRequest() {}
+    public BookingRequest() {
+    }
 
     public BookingRequest(Long showtimeId, int seatNumber, String userId) {
         this.showtimeId = showtimeId;
@@ -28,24 +29,12 @@ public class BookingRequest {
     }
 
     // Getters & setters
-    public Long getShowtimeId() {
-        return showtimeId;
-    }
-    public void setShowtimeId(Long showtimeId) {
-        this.showtimeId = showtimeId;
-    }
+    public Long getShowtimeId() {return showtimeId;}
+    public void setShowtimeId(Long showtimeId) {this.showtimeId = showtimeId;}
 
-    public int getSeatNumber() {
-        return seatNumber;
-    }
-    public void setSeatNumber(int seatNumber) {
-        this.seatNumber = seatNumber;
-    }
+    public int getSeatNumber() {return seatNumber;}
+    public void setSeatNumber(int seatNumber) {this.seatNumber = seatNumber;}
 
-    public String getUserId() {
-        return userId;
-    }
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public String getUserId() {return userId;}
+    public void setUserId(String userId) {this.userId = userId;}
 }

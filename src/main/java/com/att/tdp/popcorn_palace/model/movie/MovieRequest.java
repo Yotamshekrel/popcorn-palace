@@ -24,43 +24,18 @@ public class MovieRequest {
     @Max(value = 2025, message = "Release year must not exceed the current year (2025)")
     private Integer releaseYear;
 
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() {return title;}
+    public void setTitle(String title) {this.title = title;}
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getGenre() {return genre;}
+    public void setGenre(String genre) {this.genre = genre;}
 
-    public String getGenre() {
-        return genre;
-    }
+    public Integer getDuration() {return duration;}
+    public void setDuration(Integer duration) {this.duration = duration;}
 
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
+    public Double getRating() {return rating;}
+    public void setRating(Double rating) {this.rating = rating;}
 
-    public Integer getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Integer duration) {
-        this.duration = duration;
-    }
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public void setRating(Double rating) {
-        this.rating = rating;
-    }
-
-    public Integer getReleaseYear() {
-        return releaseYear;
-    }
-
-    public void setReleaseYear(Integer releaseYear) {
-        this.releaseYear = releaseYear;
-    }
+    public Integer getReleaseYear() {return releaseYear;}
+    public void setReleaseYear(Integer releaseYear) {this.releaseYear = releaseYear;}
 }

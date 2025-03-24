@@ -39,43 +39,18 @@ public class ShowtimeRequest {
     }
 
     // Getters / Setters
-    public Long getMovieId() {
-        return movieId;
-    }
+    public Long getMovieId() {return movieId;}
+    public void setMovieId(Long movieId) {this.movieId = movieId;}
 
-    public void setMovieId(Long movieId) {
-        this.movieId = movieId;
-    }
+    public String getTheater() {return theater;}
+    public void setTheater(String theater) {this.theater = theater;}
 
-    public String getTheater() {
-        return theater;
-    }
+    public LocalDateTime getStartTime() {return startTime;}
+    public void setStartTime(LocalDateTime startTime) {this.startTime = startTime;}
 
-    public void setTheater(String theater) {
-        this.theater = theater;
-    }
+    public LocalDateTime getEndTime() {return endTime;}
+    public void setEndTime(LocalDateTime endTime) {this.endTime = endTime;}
 
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
+    public BigDecimal getPrice() {return price;}
+    public void setPrice(BigDecimal price) {this.price = price;}
 }
