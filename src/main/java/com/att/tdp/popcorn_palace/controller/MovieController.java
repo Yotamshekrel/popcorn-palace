@@ -61,7 +61,7 @@ public class MovieController {
 
         Movie savedMovie = movieRepository.save(mapToEntity(movieDto));
 
-        String successMsg = "Successfully created the movie: '" + savedMovie.getTitle() + "'.";
+        String successMsg = "Successfully created the movie: '" + savedMovie.getTitle() + "with id: "+savedMovie.getId()+ "'.";
         return ResponseEntity.ok(successMsg);
 
     }

@@ -1,6 +1,6 @@
 package com.att.tdp.popcorn_palace.controller;
 
-import com.att.tdp.popcorn_palace.model.Movie;
+import com.att.tdp.popcorn_palace.model.movie.Movie;
 import com.att.tdp.popcorn_palace.model.booking.Booking;
 import com.att.tdp.popcorn_palace.model.showtime.Showtime;
 import com.att.tdp.popcorn_palace.repository.BookingRepository;
@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import jakarta.transaction.Transactional;
 

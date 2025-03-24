@@ -1,6 +1,6 @@
 package com.att.tdp.popcorn_palace.controller;
 
-import com.att.tdp.popcorn_palace.model.Movie;
+import com.att.tdp.popcorn_palace.model.movie.Movie;
 import com.att.tdp.popcorn_palace.model.showtime.Showtime;
 import com.att.tdp.popcorn_palace.repository.MovieRepository;
 import com.att.tdp.popcorn_palace.repository.ShowtimeRepository;
@@ -206,14 +206,14 @@ class ShowtimeControllerTest {
                                                         BigDecimal.valueOf(10.0)));
 
                         String body = """
-                                        {
-                                          "movieId": %d,
-                                          "theater": "Update Theater",
-                                          "startTime": "2025-03-25T10:00:00",
-                                          "endTime": "2025-03-25T12:00:00",
-                                          "price": 10.0
-                                        }
-                                    """.formatted(movieId);
+                                            {
+                                              "movieId": %d,
+                                              "theater": "Update Theater",
+                                              "startTime": "2025-03-25T10:00:00",
+                                              "endTime": "2025-03-25T12:00:00",
+                                              "price": 10.0
+                                            }
+                                        """.formatted(movieId);
 
                         // Update the showtime
                         mockMvc.perform(post("/showtimes/update/" + existing.getId())
@@ -230,14 +230,14 @@ class ShowtimeControllerTest {
                 void shouldReturnNotFoundWhenMissing() throws Exception {
                         Long movieId = insertTestMovie();
                         String body = """
-                                        {
-                                          "movieId": %d,
-                                          "theater": "Update Theater",
-                                          "startTime": "2025-03-25T10:00:00",
-                                          "endTime": "2025-03-25T12:00:00",
-                                          "price": 10.0
-                                        }
-                                    """.formatted(movieId);
+                                            {
+                                              "movieId": %d,
+                                              "theater": "Update Theater",
+                                              "startTime": "2025-03-25T10:00:00",
+                                              "endTime": "2025-03-25T12:00:00",
+                                              "price": 10.0
+                                            }
+                                        """.formatted(movieId);
 
                         // Attempt to update a non-existent showtime
                         mockMvc.perform(post("/showtimes/update/999999")
@@ -267,14 +267,14 @@ class ShowtimeControllerTest {
 
                         // Attempt to update showtime 2 so it now overlaps with showtime 1
                         String body = """
-                                        {
-                                          "movieId": %d,
-                                          "theater": "Overlap Theater",
-                                          "startTime": "2025-03-25T11:30:00",
-                                          "endTime": "2025-03-25T13:30:00",
-                                          "price": 9.0
-                                        }
-                                    """.formatted(movieId);
+                                            {
+                                              "movieId": %d,
+                                              "theater": "Overlap Theater",
+                                              "startTime": "2025-03-25T11:30:00",
+                                              "endTime": "2025-03-25T13:30:00",
+                                              "price": 9.0
+                                            }
+                                        """.formatted(movieId);
 
                         mockMvc.perform(post("/showtimes/update/" + s2.getId())
                                         .contentType(MediaType.APPLICATION_JSON)

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/showtimes")
@@ -64,7 +63,7 @@ public class ShowtimeController {
         Showtime showtime = mapRequestToEntity(request, null); // no existing ID yet
         Showtime saved = showtimeRepository.save(showtime);
 
-        String msg = "Successfully created showtime with ID=" + saved.getId();
+        String msg = "Successfully created showtime with id: " + saved.getId();
         System.out.println("[ShowtimeController] SUCCESS - " + msg);
         return ResponseEntity.ok(msg);
     }

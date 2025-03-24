@@ -1,7 +1,6 @@
 package com.att.tdp.popcorn_palace;
 
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
@@ -10,6 +9,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -174,8 +175,7 @@ class PopcornPalaceApplicationTests {
 		@DisplayName("1) Should create a valid showtime (200 OK)")
 		void createValidShowtime() {
 			// Create a movie first
-			createMovie("ShowtimeMovie", "Action", 120, 8.0, 2024);
-			long movieId = getMovieIdByTitle("ShowtimeMovie"); // or store the ID from an endpoint
+			long movieId = createMovie("ShowtimeMovie", "Action", 120, 8.0, 2024);
 
 			URI uri = URI.create("http://localhost:" + port + "/showtimes");
 			String body = String.format("""
@@ -198,8 +198,7 @@ class PopcornPalaceApplicationTests {
 		@DisplayName("2) Should reject showtime if endTime <= startTime (400)")
 		void rejectInvalidTimes() {
 			// Create a movie first
-			createMovie("BadTimesMovie", "Action", 120, 8.0, 2024);
-			long movieId = getMovieIdByTitle("BadTimesMovie");
+			long movieId = createMovie("BadTimesMovie", "Action", 120, 8.0, 2024);
 
 			URI uri = URI.create("http://localhost:" + port + "/showtimes");
 			String body = String.format("""
@@ -226,8 +225,7 @@ class PopcornPalaceApplicationTests {
 		@DisplayName("3) Should reject overlapping showtime in same theater (409)")
 		void rejectOverlap() {
 			// create movie
-			createMovie("OverlapMovie", "Drama", 100, 7.5, 2024);
-			long movieId = getMovieIdByTitle("OverlapMovie");
+			long movieId = createMovie("OverlapMovie", "Drama", 100, 7.5, 2024);
 
 			// create a showtime
 			URI uri = URI.create("http://localhost:" + port + "/showtimes");
@@ -267,8 +265,7 @@ class PopcornPalaceApplicationTests {
 		@DisplayName("4) Should update a showtime successfully (200 OK)")
 		void updateShowtime() {
 			// create a movie
-			createMovie("UpdateShowtimeMovie", "Action", 120, 8.0, 2024);
-			long movieId = getMovieIdByTitle("UpdateShowtimeMovie");
+			long movieId = createMovie("UpdateShowtimeMovie", "Action", 120, 8.0, 2024);
 
 			// create a showtime
 			long showtimeId = createShowtime(movieId, "UpdateTheater",
@@ -299,8 +296,7 @@ class PopcornPalaceApplicationTests {
 		@DisplayName("5) Should delete a showtime successfully")
 		void deleteShowtime() {
 			// create a movie
-			createMovie("DeleteShowtimeMovie", "Action", 120, 8.0, 2024);
-			long movieId = getMovieIdByTitle("DeleteShowtimeMovie");
+			long movieId = createMovie("DeleteShowtimeMovie", "Action", 120, 8.0, 2024);
 
 			long showtimeId = createShowtime(movieId, "DeleteTheater",
 					"2025-05-01T10:00:00", "2025-05-01T12:00:00", 10.0);
@@ -309,25 +305,6 @@ class PopcornPalaceApplicationTests {
 			restTemplate.delete(delUri);
 		}
 
-		// Helpers
-		private long createShowtime(long movieId, String theater, String start, String end, double price) {
-			// create a showtime
-			URI uri = URI.create("http://localhost:" + port + "/showtimes");
-			String body = String.format("""
-					    {
-					      "movieId": %d,
-					      "theater": "%s",
-					      "startTime": "%s",
-					      "endTime":   "%s",
-					      "price": %.1f
-					    }
-					""", movieId, theater, start, end, price);
-
-			// A real approach might do:
-			// var allShowtimes = showtimeRepository.findAll();
-			// return allShowtimes.get(allShowtimes.size() - 1).getId();
-			return 1L;
-		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -341,8 +318,7 @@ class PopcornPalaceApplicationTests {
 		@DisplayName("1) Should create booking successfully")
 		void createBooking() {
 			// create movie
-			createMovie("BookingMovie", "Comedy", 90, 7.0, 2025);
-			long movieId = getMovieIdByTitle("BookingMovie");
+			long movieId = createMovie("BookingMovie", "Comedy", 90, 7.0, 2025);
 			// create showtime
 			long showtimeId = createShowtime(movieId, "BookingTheater",
 					"2025-05-10T15:00:00", "2025-05-10T17:00:00", 10.0);
@@ -369,8 +345,7 @@ class PopcornPalaceApplicationTests {
 		@DisplayName("2) Should fail booking if seat is already taken")
 		void seatConflict() {
 			// create movie and showtime
-			createMovie("ConflictMovie", "Thriller", 95, 7.5, 2025);
-			long movieId = getMovieIdByTitle("ConflictMovie");
+			long movieId = createMovie("ConflictMovie", "Thriller", 95, 7.5, 2025);
 			long showtimeId = createShowtime(movieId, "ConflictTheater",
 					"2025-05-10T18:00:00", "2025-05-10T20:00:00", 12.0);
 
@@ -400,8 +375,7 @@ class PopcornPalaceApplicationTests {
 		@DisplayName("3) Should fail booking if userId is invalid UUID (400)")
 		void invalidUserId() {
 			// create movie and showtime
-			createMovie("BadUUIDMovie", "Comedy", 100, 7.0, 2025);
-			long movieId = getMovieIdByTitle("BadUUIDMovie");
+			long movieId = createMovie("BadUUIDMovie", "Comedy", 100, 7.0, 2025);
 			long showtimeId = createShowtime(movieId, "UUIDTheater",
 					"2025-05-10T21:00:00", "2025-05-10T23:00:00", 14.0);
 
@@ -440,11 +414,15 @@ class PopcornPalaceApplicationTests {
 		return headers;
 	}
 
-	/**
-	 * Mock method to get a movie's ID by title.
-	 */
-	private long getMovieIdByTitle(String title) {
-		return 1L;
+	private long extractIdFromText(String text) {
+		// Look for "id: X" in the response string
+		Pattern pattern = Pattern.compile("id: (\\d+)");
+		Matcher matcher = pattern.matcher(text);
+		if (matcher.find()) {
+			return Long.parseLong(matcher.group(1));
+		} else {
+			throw new RuntimeException("Could not extract ID from text: " + text);
+		}
 	}
 
 	/**
@@ -456,19 +434,25 @@ class PopcornPalaceApplicationTests {
 	 * @param rating
 	 * @param year
 	 */
-	private void createMovie(String title, String genre, int duration, double rating, int year) {
+	private long createMovie(String title, String genre, int duration, double rating, int year) {
 		URI uri = URI.create("http://localhost:" + port + "/movies");
 		String body = String.format("""
-				    {
-				      "title": "%s",
-				      "genre": "%s",
-				      "duration": %d,
-				      "rating": %.1f,
-				      "releaseYear": %d
-				    }
+					{
+					  "title": "%s",
+					  "genre": "%s",
+					  "duration": %d,
+					  "rating": %.1f,
+					  "releaseYear": %d
+					}
 				""", title, genre, duration, rating, year);
 
-		restTemplate.postForEntity(uri, new HttpEntity<>(body, jsonHeaders()), String.class);
+		ResponseEntity<String> resp = restTemplate.postForEntity(uri, new HttpEntity<>(body, jsonHeaders()),
+				String.class);
+		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		// Extract movieId from response
+		String responseBody = resp.getBody();
+		return extractIdFromText(responseBody);
 	}
 
 	/**
@@ -484,19 +468,20 @@ class PopcornPalaceApplicationTests {
 	private long createShowtime(long movieId, String theater, String start, String end, double price) {
 		URI uri = URI.create("http://localhost:" + port + "/showtimes");
 		String body = String.format("""
-				    {
-				      "movieId": %d,
-				      "theater": "%s",
-				      "startTime": "%s",
-				      "endTime":   "%s",
-				      "price": %.1f
-				    }
+					{
+					  "movieId": %d,
+					  "theater": "%s",
+					  "startTime": "%s",
+					  "endTime": "%s",
+					  "price": %.1f
+					}
 				""", movieId, theater, start, end, price);
 
 		ResponseEntity<String> resp = restTemplate.postForEntity(uri, new HttpEntity<>(body, jsonHeaders()),
 				String.class);
 		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-		return 1L;
+		return extractIdFromText(resp.getBody());
 	}
+
 }
