@@ -1,6 +1,6 @@
 package com.att.tdp.popcorn_palace.integration;
 
-import com.att.tdp.popcorn_palace.model.Movie;
+import com.att.tdp.popcorn_palace.model.movie.Movie;
 import com.att.tdp.popcorn_palace.repository.MovieRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

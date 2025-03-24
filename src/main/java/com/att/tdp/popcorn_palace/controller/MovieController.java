@@ -1,6 +1,7 @@
 package com.att.tdp.popcorn_palace.controller;
 
-import com.att.tdp.popcorn_palace.model.Movie;
+import com.att.tdp.popcorn_palace.model.movie.Movie;
+import com.att.tdp.popcorn_palace.model.movie.MovieRequest;
 import com.att.tdp.popcorn_palace.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,25 +51,19 @@ public class MovieController {
      *         or 400 Bad Request if validation fails.
      */
     @PostMapping
-    public ResponseEntity<String> addMovie(@Valid @RequestBody Movie movie) {
-        System.out.println("[MovieController] INFO - Request to add new movie: '" + movie.getTitle() + "'");
-
-        // Check if a movie with the same title is already present
-        if (movieRepository.existsByTitle(movie.getTitle())) {
-            System.out.println("[MovieController] WARN - Movie with title '" + movie.getTitle() + "' already exists.");
+    public ResponseEntity<String> addMovie(@Valid @RequestBody MovieRequest movieDto) {
+        if (movieRepository.existsByTitle(movieDto.getTitle())) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
-                    .body("Another movie already has the title '" + movie.getTitle()
+                    .body("Another movie already has the title '" + movieDto.getTitle()
                             + "'. Please pick a unique title.");
         }
 
-        // Save the new movie
-        Movie savedMovie = movieRepository.save(movie);
+        Movie savedMovie = movieRepository.save(mapToEntity(movieDto));
 
         String successMsg = "Successfully created the movie: '" + savedMovie.getTitle() + "'.";
-        System.out.println("[MovieController] SUCCESS - " + successMsg);
-
         return ResponseEntity.ok(successMsg);
+
     }
 
     /**
@@ -85,26 +80,17 @@ public class MovieController {
     @PostMapping("/update/{movieTitle}")
     public ResponseEntity<String> updateMovieByTitle(
             @PathVariable String movieTitle,
-            @Valid @RequestBody Movie updatedData) {
-        System.out.println("[MovieController] INFO - Request to update movie: '" + movieTitle + "'");
-
-        // Attempt to retrieve the existing movie by the old title
+            @Valid @RequestBody MovieRequest updatedData) {
         return movieRepository.findByTitle(movieTitle).map(existingMovie -> {
-
-            // If the user wants to rename the movie, ensure the new title is not already in
-            // use
             boolean wantsToRename = !movieTitle.equals(updatedData.getTitle());
             boolean newTitleTaken = movieRepository.existsByTitle(updatedData.getTitle());
 
             if (wantsToRename && newTitleTaken) {
-                System.out.println(
-                        "[MovieController] WARN - New title '" + updatedData.getTitle() + "' is already taken.");
                 return ResponseEntity
                         .status(HttpStatus.CONFLICT)
                         .body("Sorry, the title '" + updatedData.getTitle() + "' is already used by another movie.");
             }
 
-            // Update relevant fields
             existingMovie.setTitle(updatedData.getTitle());
             existingMovie.setGenre(updatedData.getGenre());
             existingMovie.setDuration(updatedData.getDuration());
@@ -115,16 +101,11 @@ public class MovieController {
 
             String successMsg = "Movie '" + movieTitle + "' was updated successfully. New title is '"
                     + saved.getTitle() + "'.";
-            System.out.println("[MovieController] SUCCESS - " + successMsg);
-
             return ResponseEntity.ok(successMsg);
 
-        }).orElseGet(() -> {
-            String msg = "Movie with title '" + movieTitle + "' was not found. Update failed.";
-            System.out.println("[MovieController] WARN - " + msg);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(msg);
-        });
-        
+        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Movie with title '" + movieTitle + "' was not found. Update failed."));
+
     }
 
     /**
@@ -167,4 +148,14 @@ public class MovieController {
                             + "'. Please try again or contact support.");
         }
     }
+
+    private Movie mapToEntity(MovieRequest dto) {
+        return new Movie(
+                dto.getTitle(),
+                dto.getGenre(),
+                dto.getDuration(),
+                dto.getRating(),
+                dto.getReleaseYear());
+    }
+
 }
